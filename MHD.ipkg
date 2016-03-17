@@ -1,0 +1,11 @@
+package MHD
+
+sourcedir = src
+
+modules = MHD.Daemon, HTTP.Status_codes
+
+makefile = Makefile
+
+objs = lmh.o, lmh.h
+
+libs = microhttpd

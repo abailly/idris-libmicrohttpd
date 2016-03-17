@@ -1,0 +1,11 @@
+package Hello_browser
+
+modules = Main
+
+executable = hello_browser
+
+main = Hello_browser
+
+pkgs = MHD
+
+
