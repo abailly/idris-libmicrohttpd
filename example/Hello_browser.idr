@@ -1,7 +1,9 @@
 module Main
 
 import MHD.Daemon
+import MHD.Response
 import HTTP.Status_codes
+import System
 
 %link C "lmh.o"
 %link C "/usr/lib64/libmicrohttpd.so"
@@ -26,7 +28,7 @@ main = do
   wr <- wrapper
   daemon <- start_daemon MHD_USE_SELECT_INTERNALLY 8912 null null (wr) null
   case daemon == null of
-    True  => pure () -- set exit code to 1 - HOWTO
+    True  => exit 1
     False => do
       x <- getChar
       stop_daemon daemon
