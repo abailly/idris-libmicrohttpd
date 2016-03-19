@@ -2,7 +2,7 @@ package MHD
 
 sourcedir = src
 
-modules = MHD.Daemon, MHD.Response, HTTP.Status_codes
+modules = MHD.Daemon, MHD.Response, MHD.Connection, HTTP.Status_codes
 
 makefile = Makefile
 

@@ -1,0 +1,11 @@
+package Logging
+
+modules = Main
+
+executable = logging
+
+main = Logging
+
+pkgs = MHD
+
+

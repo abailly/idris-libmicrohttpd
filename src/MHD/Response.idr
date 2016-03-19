@@ -1,6 +1,8 @@
 ||| Functions for dealing with response objects
 module MHD.Response
 
+%include C "lmh.h"
+
 ||| Buffer is a persistent (static/global) buffer that won't change for at least the lifetime of the response, MHD should just use it, not free it, not copy it, just keep an alias to it.
 export MHD_RESPMEM_PERSISTENT : Int
 MHD_RESPMEM_PERSISTENT = 0

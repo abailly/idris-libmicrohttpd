@@ -5,6 +5,7 @@ import MHD.Response
 import HTTP.Status_codes
 import System
 
+%flag C "-g"
 %link C "lmh.o"
 %link C "/usr/lib64/libmicrohttpd.so"
 
