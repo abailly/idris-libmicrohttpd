@@ -27,3 +27,13 @@ create_response_from_buffer buffer mode =
   foreign FFI_C "MHD_create_response_from_buffer" (Bits64 -> String -> Bits32 -> IO Ptr) 
     (prim__zextInt_B64 $ toIntNat $ Prelude.Strings.length buffer) 
       buffer (prim__zextInt_B32 mode)
+
+||| Create an MHD_Response (for now treated as an opaque data type) from a file descriptor.
+export create_response_from_fd_at_offset : (size : Bits64) -> (file_descriptor : Int) -> (offset : Bits64) -> IO Ptr
+create_response_from_fd_at_offset size fd off  =
+  foreign FFI_C "MHD_create_response_from_fd_at_offset" (Bits64 -> Int -> Bits64 -> IO Ptr) size fd off
+
+||| Add a header to a response
+export add_response_header : Ptr -> String -> String -> IO Int
+add_response_header resp header content = 
+  foreign FFI_C "MHD_add_response_header" (Ptr -> String -> String -> IO Int)  resp header content

@@ -1,0 +1,11 @@
+package Response_headers
+
+modules = Main
+
+executable = response_headers
+
+main = Response_headers
+
+pkgs = MHD
+
+
