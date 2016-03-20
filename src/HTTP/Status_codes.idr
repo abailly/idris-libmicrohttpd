@@ -2,8 +2,8 @@ module Status_codes
 
 %access export
 
-HTTP_OK : Int
-HTTP_OK = 200
+HTTP_ok : Int
+HTTP_ok = 200
 
-HTTP_INTERNAL_SERVER_ERROR : Int
-HTTP_INTERNAL_SERVER_ERROR = 500
+HTTP_internal_server_error : Int
+HTTP_internal_server_error = 500

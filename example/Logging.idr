@@ -1,3 +1,4 @@
+||| Following tutorial C.2 - logging.c
 module Main
 
 import MHD.Daemon

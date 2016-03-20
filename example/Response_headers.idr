@@ -37,7 +37,7 @@ respond_with_internal_server_error conn = do
   if response == null then
     pure MHD_NO
    else do
-     ret <- queue_response conn HTTP_INTERNAL_SERVER_ERROR response
+     ret <- queue_response conn HTTP_internal_server_error response
      destroy_response response
      pure ret
   
@@ -62,7 +62,7 @@ answer_to_connection cls conn url method version up_d up_d_sz con_cls = unsafePe
               size <- fsize status
               response <- create_response_from_fd_at_offset size fd 0
               add_response_header response HTTP_content_type "image/png"
-              ret <- queue_response conn HTTP_OK response
+              ret <- queue_response conn HTTP_ok response
               destroy_response response
               pure ret
 

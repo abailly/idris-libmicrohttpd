@@ -1,0 +1,11 @@
+package Basic_authentication
+
+modules = Main
+
+executable = basic_authentication
+
+main = Basic_authentication
+
+pkgs = MHD, contrib
+
+

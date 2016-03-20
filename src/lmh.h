@@ -11,3 +11,5 @@ struct MHD_Daemon * C_start_daemon (unsigned int flags, uint16_t port, MHD_Accep
 struct stat * C_fstat (int fd);
 
 off_t C_file_size (struct stat * sbuf);
+
+char * make_string (char ** str);

@@ -1,3 +1,4 @@
+||| Following tutorial C.1 - hellobrowser.c
 module Main
 
 import MHD.Daemon
@@ -12,7 +13,7 @@ import System
 answer_to_connection : Request_handler
 answer_to_connection cls conn url method version up_d up_d_sz con_cls = unsafePerformIO $ do
   response <- create_response_from_buffer page MHD_RESPMEM_PERSISTENT
-  ret <- queue_response conn HTTP_OK response
+  ret <- queue_response conn HTTP_ok response
   destroy_response response
   pure ret
   

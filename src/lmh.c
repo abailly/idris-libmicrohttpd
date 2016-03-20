@@ -22,3 +22,5 @@ off_t C_file_size (struct stat * sbuf)
 {
   return sbuf->st_size;
 }
+
+char * make_string (char ** str) {return *str;} 
