@@ -28,6 +28,42 @@ MHD_USE_SELECT_INTERNALLY = 8
 public export Request_handler : Type
 Request_handler = (cls : Ptr) -> (connection : Ptr) -> (url : String) -> (method : String) -> (version : String) -> (upload_data : String) -> (upload_data_size : Ptr) -> (con_cls : Ptr) -> Int
 
+-- Termination reasons follow
+
+||| We finished sending the response.
+MHD_REQUEST_TERMINATED_COMPLETED_OK : Int
+MHD_REQUEST_TERMINATED_COMPLETED_OK = 0
+
+||| Error handling the connection (resources exhausted, other side closed connection, application error accepting request, etc.)
+MHD_REQUEST_TERMINATED_WITH_ERROR : Int
+MHD_REQUEST_TERMINATED_WITH_ERROR = 1
+
+||| No activity on the connection for the number of seconds specified using MHD_OPTION_CONNECTION_TIMEOUT.
+MHD_REQUEST_TERMINATED_TIMEOUT_REACHED : Int
+MHD_REQUEST_TERMINATED_TIMEOUT_REACHED = 2
+
+||| We had to close the session since MHD was being shut down.
+MHD_REQUEST_TERMINATED_DAEMON_SHUTDOWN : Int
+MHD_REQUEST_TERMINATED_DAEMON_SHUTDOWN = 3
+
+||| We tried to read additional data, but the other side closed the connection. This error is similar to MHD_REQUEST_TERMINATED_WITH_ERROR, but specific to the case where the connection died because the other side did not send expected data.
+MHD_REQUEST_TERMINATED_READ_ERROR : Int
+MHD_REQUEST_TERMINATED_READ_ERROR = 4
+
+||| The client terminated the connection by closing the socket for writing (TCP half-closed); MHD aborted sending the response according to RFC 2616, section 8.1.4.
+MHD_REQUEST_TERMINATED_CLIENT_ABORT : Int
+MHD_REQUEST_TERMINATED_CLIENT_ABORT = 5
+
+
+||| Type of handlers for notification on request completed
+|||
+||| cls              - argument given along with function pointer when registering callback
+||| connection       - currently treated as a black-box
+||| con_cls          - as set in last call to the Request_handler callback
+||| toe              - termination reason
+public export Request_completed_handler : Type
+Request_completed_handler = (cls : Ptr) -> (conn : Ptr) -> (con_cls : Ptr) -> (toe : Int) -> ()
+
 ||| Start listening on a port - No key-value parameter list is passed
 |||
 ||| @flags   - Any combination of MHD_FLAG enumeration

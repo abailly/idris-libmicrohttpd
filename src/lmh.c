@@ -1,4 +1,6 @@
 #include "lmh.h"
+#include <string.h>
+#include <stdlib.h>
 
 struct MHD_Daemon * C_start_daemon (unsigned int flags, uint16_t port, MHD_AcceptPolicyCallback apc, void * apc_cls,
 				    MHD_AccessHandlerCallback dh, void * dh_cls)
@@ -24,3 +26,10 @@ off_t C_file_size (struct stat * sbuf)
 }
 
 char * make_string (char ** str) {return *str;} 
+
+char * string_to_c (char * str) {
+  char * dest;
+  dest = malloc (strlen (str) + 1);
+  strcpy (dest, str);
+  return dest;
+}

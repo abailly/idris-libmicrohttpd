@@ -1,0 +1,11 @@
+package Simple_post
+
+modules = Main
+
+executable = simple_post
+
+main = Simple_post
+
+pkgs = MHD, contrib
+
+
