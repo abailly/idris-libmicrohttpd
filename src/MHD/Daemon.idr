@@ -1,6 +1,8 @@
 ||| Functions for starting a libmicrohttpd Daemon
 module MHD.Daemon
 
+import CFFI
+
 %include C "lmh.h"
 
 ||| Allow connection
@@ -154,7 +156,12 @@ public export record Start_options where
 ||| A Start_options record with all values set to defaults
 export default_options : Start_options
 default_options = Make_start_options MHD_POOL_SIZE_DEFAULT 0 0 (null, null) 0 null (null, null) "" "" null "" 0 (null, null) 1 (null, null) "" 0 0 "" 0 null 50 "" Nothing
-  
+
+option_struct : Composite
+option_struct = STRUCT [I32, UNION [I64, PTR], PTR]
+
+ops : Int -> Composite
+ops n = ARRAY n option_struct
 
 ||| Start listening on a port - a key-value parameter list is built from @options
 |||

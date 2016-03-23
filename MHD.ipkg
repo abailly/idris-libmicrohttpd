@@ -9,3 +9,5 @@ makefile = Makefile
 objs = lmh.o, lmh.h
 
 libs = microhttpd
+
+pkgs = contrib
