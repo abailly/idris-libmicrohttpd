@@ -72,7 +72,6 @@ Request_completed_handler = (cls : Ptr) -> (conn : Ptr) -> (con_cls : Ptr) -> (t
 ||| @apc_cls - extra argument to @apc
 ||| @handler - handler for all requests - this must be a function pointer of type Request_handler
 ||| @arg     - argument to be passed to @handler
-||| TODO options argument
 ||| Result is a handle to the daemon (null on error)
 export start_daemon : (flags : Bits32) -> (port : Bits16) -> (apc : Ptr) -> (apc_cls : Ptr) -> (handler : Ptr) -> (arg : Ptr) -> IO Ptr
 start_daemon flags port apc apc_cls handler arg = do
@@ -156,3 +155,18 @@ public export record Start_options where
 export default_options : Start_options
 default_options = Make_start_options MHD_POOL_SIZE_DEFAULT 0 0 (null, null) 0 null (null, null) "" "" null "" 0 (null, null) 1 (null, null) "" 0 0 "" 0 null 50 "" Nothing
   
+
+||| Start listening on a port - a key-value parameter list is built from @options
+|||
+||| @flags   - Any combination of MHD_FLAG enumeration
+||| @port    - the port to listen on
+||| @apc     - callback to check which clients will be allowed to connect - pass null to allow all clients
+||| @apc_cls - extra argument to @apc
+||| @handler - handler for all requests - this must be a function pointer of type Request_handler
+||| @arg     - argument to be passed to @handler
+||| @options - options governing the behaviour of the daemon
+||| Result is a handle to the daemon (null on error)
+export start_daemon_with_options : (flags : Bits32) -> (port : Bits16) -> (apc : Ptr) -> (apc_cls : Ptr) -> (handler : Ptr) -> (arg : Ptr) -> (options : Start_options) -> IO Ptr
+start_daemon_with_options flags port apc apc_cls handler arg options = do
+  daemon <- foreign FFI_C "C_start_daemon_with_options" (Bits32 -> Bits16 -> Ptr -> Ptr -> Ptr -> Ptr -> IO Ptr) flags port apc apc_cls handler arg -- TODO build the options array using MHD_OPTION_ARRAY and other args
+  pure daemon
