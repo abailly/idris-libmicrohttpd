@@ -168,5 +168,8 @@ default_options = Make_start_options MHD_POOL_SIZE_DEFAULT 0 0 (null, null) 0 nu
 ||| Result is a handle to the daemon (null on error)
 export start_daemon_with_options : (flags : Bits32) -> (port : Bits16) -> (apc : Ptr) -> (apc_cls : Ptr) -> (handler : Ptr) -> (arg : Ptr) -> (options : Start_options) -> IO Ptr
 start_daemon_with_options flags port apc apc_cls handler arg options = do
-  daemon <- foreign FFI_C "C_start_daemon_with_options" (Bits32 -> Bits16 -> Ptr -> Ptr -> Ptr -> Ptr -> IO Ptr) flags port apc apc_cls handler arg -- TODO build the options array using MHD_OPTION_ARRAY and other args
+  daemon <- foreign FFI_C "C_start_daemon_with_options" (Bits32 -> Bits16 -> Ptr -> Ptr -> Ptr -> Ptr -> Bits64 -> Bits32 -> Bits32 -> Bits32 ->
+    Bits32 -> Bits64 -> Bits32 -> IO Ptr)
+   flags port apc apc_cls handler arg (connection_memory_limit options) (connection_limit options) (connection_timeout options)  (per_ip_connection_limit options)
+    (thread_pool_size options) (thread_stack_size options) (tcp_fastopen_queue_size options)
   pure daemon
