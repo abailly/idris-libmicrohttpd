@@ -86,6 +86,7 @@ stop_daemon daemon = foreign FFI_C "MHD_stop_daemon" (Ptr -> IO ()) daemon
 MHD_POOL_SIZE_DEFAULT : Bits64
 MHD_POOL_SIZE_DEFAULT = 32 * 1024
 
+||| Options that can be passed to start_daemon_with_options
 public export record Start_options where
   constructor Make_start_options 
   ||| Maximum memory size per connection. Default is 32 kb (MHD_POOL_SIZE_DEFAULT). Values above 128k are unlikely to result in much benefit, as half of the memory will be typically used for IO, and TCP buffers are unlikely to support window sizes above 64k on most systems.
@@ -133,7 +134,7 @@ public export record Start_options where
   ||| where the return value must be "strlen(s)" and "s" should be updated. Note that the unescape function must not lengthen "s" (the result must be shorter than the input and still be 0-terminated). "cls" will be set to the second argument following MHD_OPTION_UNESCAPE_CALLBACK.
   unescape_callback : (Ptr, Ptr)
   ||| Memory pointer for the random values to be used by the Digest Auth module. This option should be followed by two arguments. First an integer of type size_t which specifies the size of the buffer pointed to by the second argument in bytes. Note that the application must ensure that the buffer of the second argument remains allocated and unmodified while the deamon is running.
-  digest_auth_random :(Bits64, Ptr)
+  digest_auth_random : String
   ||| Size of the internal array holding the map of the nonce and the nonce counter.
   nonce_nc_size : Bits32
   ||| Desired size of the stack for threads created by MHD. Use 0 for system default.
@@ -150,3 +151,8 @@ public export record Start_options where
   https_mem_dhparams : String
   ||| If present and set to true, allow reusing address:port socket (by using SO_REUSEPORT on most platform, or platform-specific ways). If present and set to false, disallow reusing address:port socket (does nothing on most plaform, but uses SO_EXCLUSIVEADDRUSE on Windows). 
   listening_address_reuse : Maybe Bool
+  
+||| A Start_options record with all values set to defaults
+export default_options : Start_options
+default_options = Make_start_options MHD_POOL_SIZE_DEFAULT 0 0 (null, null) 0 null (null, null) "" "" null "" 0 (null, null) 1 (null, null) "" 0 0 "" 0 null 50 "" Nothing
+  
