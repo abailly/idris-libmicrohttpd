@@ -163,9 +163,11 @@ option_struct = STRUCT [I32, UNION [I64, PTR], PTR]
 ops : Int -> Composite
 ops n = ARRAY n option_struct
 
-||| Number of additional options in @opts that need to be passed to ops
-option_count : (opts : Start_options) -> Int
-option_count opts = let cands = [(fst (notify_completed opts)) /= null,
+||| Which options are selected
+|||
+||| @opts - all options, selected or otherwise
+selected_options : (opts : Start_options) -> List Bool
+selected_options opts = [(fst (notify_completed opts)) /= null,
                                  (socket_address opts) /= null,
                                  (fst (uri_log_callback opts)) /= null,
                                  (length (https_mem_key opts)) > 0,
@@ -180,9 +182,13 @@ option_count opts = let cands = [(fst (notify_completed opts)) /= null,
                                  (connection_memory_increment opts) > 0,
                                  (https_cert_callback opts) /= null,
                                  (length (https_mem_dhparams opts)) > 0,
-                                 (listening_address_reuse opts) /= Nothing
-                                ]
-                    in toIntNat $ length $ filter (\x => True) cands
+                                 (listening_address_reuse opts) /= Nothing]
+
+||| Number of additional options in @opts that need to be passed to ops
+|||
+||| @opts - which options have been selected
+option_count : (opts : List Bool) -> Int
+option_count opts = toIntNat $ length $ filter (\x => True) opts
 
 ||| Start listening on a port - a key-value parameter list is built from @options
 |||
@@ -196,11 +202,12 @@ option_count opts = let cands = [(fst (notify_completed opts)) /= null,
 ||| Result is a handle to the daemon (null on error)
 export start_daemon_with_options : (flags : Bits32) -> (port : Bits16) -> (apc : Ptr) -> (apc_cls : Ptr) -> (handler : Ptr) -> (arg : Ptr) -> (options : Start_options) -> IO Ptr
 start_daemon_with_options flags port apc apc_cls handler arg options = do
-  op <- alloc (ops (option_count (options)))
+  let selected = selected_options options
+  op_array <- alloc (ops (option_count (selected)))
   -- TODO now need to fill those array fields with values
   daemon <- foreign FFI_C "C_start_daemon_with_options" (Bits32 -> Bits16 -> Ptr -> Ptr -> Ptr -> Ptr -> Bits64 -> Bits32 -> Bits32 -> Bits32 ->
-      Bits32 -> Bits64 -> Bits32 -> Ptr -> IO Ptr) flags port apc apc_cls handler arg (connection_memory_limit options) (connection_limit options) (connection_timeout options)  (per_ip_connection_limit options) (thread_pool_size options) (thread_stack_size options) (tcp_fastopen_queue_size options) op
-  free op
+      Bits32 -> Bits64 -> Bits32 -> Ptr -> IO Ptr) flags port apc apc_cls handler arg (connection_memory_limit options) (connection_limit options) (connection_timeout options)  (per_ip_connection_limit options) (thread_pool_size options) (thread_stack_size options) (tcp_fastopen_queue_size options) op_array
+  free op_array
   pure daemon
 
  
