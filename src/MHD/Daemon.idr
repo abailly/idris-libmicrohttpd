@@ -119,7 +119,7 @@ public export record Start_options where
   ||| Daemon credentials type. Followed by an argument of type gnutls_credentials_type_t.
   https_cred_type : Ptr
   ||| Memory pointer to a const char * specifying the cipher algorithm (default: "NORMAL").
-  https_priorites : String
+  https_priorities : String
   ||| Pass a listen socket for MHD to use (systemd-style). If this option is used, MHD will not open its own listen socket(s). The argument passed must be of type int and refer to an existing socket that has been bound to a port and is listening.
   listen_socket : Int
   ||| Use the given function for logging error messages. This option must be followed by two arguments; the first must be a pointer to a function of type MHD_LogCallback and the second a pointer void * which will be passed as the first argument to the log callback.
@@ -163,6 +163,27 @@ option_struct = STRUCT [I32, UNION [I64, PTR], PTR]
 ops : Int -> Composite
 ops n = ARRAY n option_struct
 
+||| Number of additional options in @opts that need to be passed to ops
+option_count : (opts : Start_options) -> Int
+option_count opts = let cands = [(fst (notify_completed opts)) /= null,
+                                 (socket_address opts) /= null,
+                                 (fst (uri_log_callback opts)) /= null,
+                                 (length (https_mem_key opts)) > 0,
+                                 (length (https_mem_cert opts)) > 0,
+                                 (https_cred_type opts) /= null,
+                                 (length (https_priorities opts)) > 0,
+                                 (listen_socket opts) /= 0,
+                                 (fst (external_logger opts)) /= null,
+                                 (fst (unescape_callback opts)) /= null,
+                                 (length (digest_auth_random opts)) > 0,
+                                 (length (https_mem_trust opts)) > 0,
+                                 (connection_memory_increment opts) > 0,
+                                 (https_cert_callback opts) /= null,
+                                 (length (https_mem_dhparams opts)) > 0,
+                                 (listening_address_reuse opts) /= Nothing
+                                ]
+                    in toIntNat $ length $ filter (\x => True) cands
+
 ||| Start listening on a port - a key-value parameter list is built from @options
 |||
 ||| @flags   - Any combination of MHD_FLAG enumeration
@@ -175,8 +196,13 @@ ops n = ARRAY n option_struct
 ||| Result is a handle to the daemon (null on error)
 export start_daemon_with_options : (flags : Bits32) -> (port : Bits16) -> (apc : Ptr) -> (apc_cls : Ptr) -> (handler : Ptr) -> (arg : Ptr) -> (options : Start_options) -> IO Ptr
 start_daemon_with_options flags port apc apc_cls handler arg options = do
+  op <- alloc (ops (option_count (options)))
+  -- TODO now need to fill those array fields with values
   daemon <- foreign FFI_C "C_start_daemon_with_options" (Bits32 -> Bits16 -> Ptr -> Ptr -> Ptr -> Ptr -> Bits64 -> Bits32 -> Bits32 -> Bits32 ->
-    Bits32 -> Bits64 -> Bits32 -> IO Ptr)
-   flags port apc apc_cls handler arg (connection_memory_limit options) (connection_limit options) (connection_timeout options)  (per_ip_connection_limit options)
-    (thread_pool_size options) (thread_stack_size options) (tcp_fastopen_queue_size options)
+      Bits32 -> Bits64 -> Bits32 -> Ptr -> IO Ptr) flags port apc apc_cls handler arg (connection_memory_limit options) (connection_limit options) (connection_timeout options)  (per_ip_connection_limit options) (thread_pool_size options) (thread_stack_size options) (tcp_fastopen_queue_size options) op
+  free op
   pure daemon
+
+ 
+ 
+ 
