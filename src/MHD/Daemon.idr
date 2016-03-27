@@ -1,6 +1,7 @@
 ||| Functions for starting a libmicrohttpd Daemon
 module MHD.Daemon
 
+import Data.Vect
 import CFFI
 
 %include C "lmh.h"
@@ -163,10 +164,10 @@ option_struct = STRUCT [I32, UNION [I64, PTR], PTR]
 ops : Int -> Composite
 ops n = ARRAY n option_struct
 
-||| Which options are selected
+||| Which non-defaultable options are selected?
 |||
-||| @opts - all options, selected or otherwise
-selected_options : (opts : Start_options) -> List Bool
+||| @opts - all options, with or without defaults
+selected_options : (opts : Start_options) -> Vect 16 Bool
 selected_options opts = [(fst (notify_completed opts)) /= null,
                                  (socket_address opts) /= null,
                                  (fst (uri_log_callback opts)) /= null,
@@ -184,11 +185,42 @@ selected_options opts = [(fst (notify_completed opts)) /= null,
                                  (length (https_mem_dhparams opts)) > 0,
                                  (listening_address_reuse opts) /= Nothing]
 
+||| Vector of selected-status of defaultable options, paired with their intended position in the array
+||| Positions are zero-based. -1 is paired with non-selected options
+|||
+||| @selections - flags indicating which non-defaultable options have been selected
+selected_status_and_positions : (selections : Vect 16 Bool) -> Vect 16 (Int, Bool)
+selected_status_and_positions selections = 
+  let indexless = map (\x => (-1, x)) selections
+
+  in indexless
+   
+set_array_element : (array : Composite) -> (array_ptr : CPtr) -> (Int, Bool) -> IO ()
+set_array_element array array_ptr (idx, wanted) =
+  case wanted of
+    False => pure ()
+    True  => do
+      if idx < 0 then
+        pure ()
+      else do
+        let field_idx = fromIntegerNat (cast idx)
+        fld <- pure $ array # field_idx
+        pure ()
+        
+||| Fill @array with those items of @ops that are True
+|||
+||| @array_ptr - same as @array
+||| @array - ARRAY of size = selected options in @ops
+||| @opts  - Indices of selected_options which are selected
+fill_array : (array_ptr : CPtr) -> (array : Composite) -> (opts : Vect 16 Bool) -> IO ()
+fill_array array_ptr array opts = sequence_ $ map (set_array_element array array_ptr) (selected_status_and_positions opts)
+  
+  
 ||| Number of additional options in @opts that need to be passed to ops
 |||
 ||| @opts - which options have been selected
-option_count : (opts : List Bool) -> Int
-option_count opts = toIntNat $ length $ filter (\x => True) opts
+option_count : (opts : Vect 16 Bool) -> Int
+option_count opts = toIntNat $ fst $ filter (\x => True) opts
 
 ||| Start listening on a port - a key-value parameter list is built from @options
 |||
@@ -203,8 +235,9 @@ option_count opts = toIntNat $ length $ filter (\x => True) opts
 export start_daemon_with_options : (flags : Bits32) -> (port : Bits16) -> (apc : Ptr) -> (apc_cls : Ptr) -> (handler : Ptr) -> (arg : Ptr) -> (options : Start_options) -> IO Ptr
 start_daemon_with_options flags port apc apc_cls handler arg options = do
   let selected = selected_options options
-  op_array <- alloc (ops (option_count (selected)))
-  -- TODO now need to fill those array fields with values
+  let array = ops (option_count (selected))
+  op_array <- alloc (array)
+  fill_array op_array array selected
   daemon <- foreign FFI_C "C_start_daemon_with_options" (Bits32 -> Bits16 -> Ptr -> Ptr -> Ptr -> Ptr -> Bits64 -> Bits32 -> Bits32 -> Bits32 ->
       Bits32 -> Bits64 -> Bits32 -> Ptr -> IO Ptr) flags port apc apc_cls handler arg (connection_memory_limit options) (connection_limit options) (connection_timeout options)  (per_ip_connection_limit options) (thread_pool_size options) (thread_stack_size options) (tcp_fastopen_queue_size options) op_array
   free op_array
