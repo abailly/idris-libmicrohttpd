@@ -32,6 +32,12 @@ MHD_USE_SELECT_INTERNALLY = 8
 public export Request_handler : Type
 Request_handler = (cls : Ptr) -> (connection : Ptr) -> (url : String) -> (method : String) -> (version : String) -> (upload_data : String) -> (upload_data_size : Ptr) -> (con_cls : Ptr) -> Int
 
+||| Wrapper for Idris request handlers - this doesn't work
+|||
+||| @handler - Idris function to handle requests on the connection
+public export request_handler_wrapper : (handler : Request_handler) -> IO Ptr
+request_handler_wrapper handler = foreign FFI_C "%wrapper" ((CFnPtr Request_handler) -> IO Ptr) (MkCFnPtr handler)
+
 -- Termination reasons follow
 
 ||| We finished sending the response.

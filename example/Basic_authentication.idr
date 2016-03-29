@@ -49,12 +49,12 @@ answer_to_connection cls conn url method version up_d up_d_sz con_cls = unsafePe
      destroy_response response
      pure ret       
 
-wrapper : IO Ptr
-wrapper = foreign FFI_C "%wrapper" ((CFnPtr Request_handler) -> IO Ptr) (MkCFnPtr answer_to_connection)
+handler : IO Ptr
+handler = foreign FFI_C "%wrapper" ((CFnPtr Request_handler) -> IO Ptr) (MkCFnPtr answer_to_connection)
 
 main : IO ()
 main = do
-  wr <- wrapper
+  wr <- handler
   daemon <- start_daemon MHD_USE_SELECT_INTERNALLY 8912 null null (wr) null
   case daemon == null of
     True  => exit 1

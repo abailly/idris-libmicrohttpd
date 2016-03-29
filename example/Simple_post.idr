@@ -174,7 +174,14 @@ answer_to_connection cls conn url method version up_d up_d_sz con_cls = unsafePe
             send_page conn error_page
       else do
         send_page conn error_page
+
+notify_completed_wrapper : IO Ptr
+notify_completed_wrapper = foreign FFI_C "%wrapper" ((CFnPtr Request_completed_handler) -> IO Ptr) (MkCFnPtr request_completed)
    
+start_options : Start_options
+start_options = unsafePerformIO $ do
+  wr <- notify_completed_wrapper
+  pure $ record {notify_completed = (wr, null)} default_options
 
 wrapper : IO Ptr
 wrapper = foreign FFI_C "%wrapper" ((CFnPtr Request_handler) -> IO Ptr) (MkCFnPtr answer_to_connection)
@@ -182,7 +189,7 @@ wrapper = foreign FFI_C "%wrapper" ((CFnPtr Request_handler) -> IO Ptr) (MkCFnPt
 main : IO ()
 main = do
   wr <- wrapper
-  daemon <- start_daemon MHD_USE_SELECT_INTERNALLY 8912 null null (wr) null -- TODO need to pass the notify routine and need options
+  daemon <- start_daemon_with_options MHD_USE_SELECT_INTERNALLY 8912 null null (wr) null start_options
   case daemon == null of
     True  => exit 1
     False => do
