@@ -10,4 +10,4 @@ objs = lmh.o, lmh.h
 
 libs = microhttpd
 
-pkgs = contrib
+pkgs = contrib,effects
