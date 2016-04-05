@@ -1,4 +1,4 @@
-||| Functions for starting a libmicrohttpd Daemon
+||| Functions for start_daemonng a libmicrohttpd Daemon
 module MHD.Daemon
 
 import Data.Vect
@@ -100,7 +100,7 @@ public export record Start_options where
   constructor Make_start_options 
   ||| Maximum memory size per connection. Default is 32 kb (MHD_POOL_SIZE_DEFAULT). Values above 128k are unlikely to result in much benefit, as half of the memory will be typically used for IO, and TCP buffers are unlikely to support window sizes above 64k on most systems.
   connection_memory_limit : Bits64
-  ||| Maximum number of concurrent connections to accept (default 0 = no limit?)
+  ||| Maximum number of concurrent connections to accept (default 10 - this wrapper only)
   connection_limit : Bits32
   ||| After how many seconds of inactivity should a connection automatically be timed out? (default 0 = no timeout)
   connection_timeout : Bits32
@@ -163,7 +163,7 @@ public export record Start_options where
   
 ||| A Start_options record with all values set to defaults
 export default_options : Start_options
-default_options = Make_start_options MHD_POOL_SIZE_DEFAULT 0 0 (null, null) 0 null (null, null) "" "" null "" 0 (null, null) 1 (null, null) "" 0 0 "" 0 null 50 "" Nothing
+default_options = Make_start_options MHD_POOL_SIZE_DEFAULT 10 0 (null, null) 0 null (null, null) "" "" null "" 0 (null, null) 1 (null, null) "" 0 0 "" 0 null 50 "" Nothing
 
 option_union : Composite
 option_union = UNION [I64, PTR]

@@ -20,4 +20,6 @@ off_t C_file_size (struct stat * sbuf);
 
 char * make_string (char ** str);
 
+char * make_string_2 (char * str);
+
 char * string_to_c (char * str);

@@ -16,7 +16,7 @@ string_to_c : String -> IO Ptr
 string_to_c str = foreign FFI_C "string_to_c" (String -> IO Ptr) str
 
 string_from_c : Ptr -> IO String
-string_from_c str = foreign FFI_C "make_string" (Ptr -> IO String) str
+string_from_c str = foreign FFI_C "make_string_2" (Ptr -> IO String) str
 
 ||| HTML text response for the initial GET inquiry
 ask_page : String
@@ -89,6 +89,7 @@ GET_type = 0
 ||| Termination notification handler
 request_completed : Request_completed_handler
 request_completed cls conn con_cls toe = unsafePerformIO $ do
+  putStrLn "In request_completed"
   conn_info <- peek PTR con_cls
   if conn_info == null then
     pure ()
@@ -135,6 +136,8 @@ create_connection_information conn method con_cls = do
         free conn_info
         pure MHD_NO
       else do
+        fld_2 <- pure $ (connection_information_struct#2) conn_info
+        poke PTR fld_2 pp
         success conn_info con_cls POST_type     
     else
       success conn_info con_cls GET_type
@@ -163,7 +166,7 @@ answer_to_connection cls conn url method version up_d up_d_sz con_cls = unsafePe
           pp <- peek PTR fld_2
           ret <- post_process pp up_d size
           poke I64 up_d_sz 0
-          pure ret
+          pure MHD_YES
         else do
           fld_1 <- pure $ (connection_information_struct#1) conn_info
           answer <- peek PTR fld_1
@@ -177,7 +180,7 @@ answer_to_connection cls conn url method version up_d up_d_sz con_cls = unsafePe
 
 notify_completed_wrapper : IO Ptr
 notify_completed_wrapper = foreign FFI_C "%wrapper" ((CFnPtr Request_completed_handler) -> IO Ptr) (MkCFnPtr request_completed)
-   
+
 start_options : Start_options
 start_options = unsafePerformIO $ do
   wr <- notify_completed_wrapper
