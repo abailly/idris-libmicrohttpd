@@ -32,12 +32,6 @@ MHD_USE_SELECT_INTERNALLY = 8
 public export Request_handler : Type
 Request_handler = (cls : Ptr) -> (connection : Ptr) -> (url : String) -> (method : String) -> (version : String) -> (upload_data : String) -> (upload_data_size : Ptr) -> (con_cls : Ptr) -> Int
 
-||| Wrapper for Idris request handlers - this doesn't work
-|||
-||| @handler - Idris function to handle requests on the connection
-public export request_handler_wrapper : (handler : Request_handler) -> IO Ptr
-request_handler_wrapper handler = foreign FFI_C "%wrapper" ((CFnPtr Request_handler) -> IO Ptr) (MkCFnPtr handler)
-
 -- Termination reasons follow
 
 ||| We finished sending the response.
@@ -165,11 +159,9 @@ public export record Start_options where
 export default_options : Start_options
 default_options = Make_start_options MHD_POOL_SIZE_DEFAULT 10 0 (null, null) 0 null (null, null) "" "" null "" 0 (null, null) 1 (null, null) "" 0 0 "" 0 null 50 "" Nothing
 
-option_union : Composite
-option_union = UNION [I64, PTR]
-
+||| Second field can be an I64 instead.
 option_struct : Composite
-option_struct = STRUCT [I32, UNION [I64, PTR], PTR]
+option_struct = STRUCT [I32, PTR, PTR]
 
 ops : Int -> Composite
 ops n = ARRAY n option_struct
@@ -199,6 +191,10 @@ selected_options opts = [(fst (notify_completed opts)) /= null,
 MHD_OPTION_NOTIFY_COMPLETED : Bits32
 MHD_OPTION_NOTIFY_COMPLETED = 4
 
+||| Start daemon option for end of options list
+MHD_OPTION_END : Bits32
+MHD_OPTION_END = 0
+
 ||| Fill @array pointed to by @array_ptr with a notification callback
 |||
 ||| @array_ptr - same as @array
@@ -209,16 +205,12 @@ fill_notify_completed array_ptr array options = do
   let (callback, arg) = notify_completed options
   let fld = array # !get
   modify (+ (the Nat 1))
-  struct <- lift $ alloc option_struct
   let fld_0 = option_struct # 0
   let fld_1 = option_struct # 1
   let fld_2 = option_struct # 2
-  lift $ poke I32 (fld_0 struct) MHD_OPTION_NOTIFY_COMPLETED
-  lift $ poke PTR (fld_2 struct) arg
-  union <- lift $ alloc option_union
-  let int_fld = option_union # 0
-  let ptr_fld = option_union # 1
-  lift $ poke PTR (ptr_fld union) callback
+  lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_NOTIFY_COMPLETED
+  lift $ poke PTR (fld_1 (fld array_ptr)) callback
+  lift $ poke PTR (fld_2 (fld array_ptr)) arg
   pure ()
 
 ||| Fill @array with those items of @ops that are True
@@ -231,14 +223,21 @@ fill_array : (array_ptr : CPtr) -> (array : Composite) -> (opts : Vect 16 Bool) 
 fill_array array_ptr array opts options = do
   if (index 0 opts) then do
     fill_notify_completed array_ptr array options
-  else
+    let fld = array # !get
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_END
+    lift $ poke I64 (fld_1 (fld array_ptr)) 0 
+    lift $ poke PTR (fld_2 (fld array_ptr)) null
+  else do
     pure ()
   
 ||| Number of additional options in @opts that need to be passed to ops
 |||
 ||| @opts - which options have been selected
 option_count : (opts : Vect 16 Bool) -> Int
-option_count opts = toIntNat $ fst $ filter (\x => True) opts
+option_count opts = toIntNat $ fst $ filter (\x => x == True) opts
 
 ||| Start listening on a port - a key-value parameter list is built from @options
 |||
@@ -253,9 +252,9 @@ option_count opts = toIntNat $ fst $ filter (\x => True) opts
 export start_daemon_with_options : (flags : Bits32) -> (port : Bits16) -> (apc : Ptr) -> (apc_cls : Ptr) -> (handler : Ptr) -> (arg : Ptr) -> (options : Start_options) -> IO Ptr
 start_daemon_with_options flags port apc apc_cls handler arg options = do
   let selected = selected_options options
-  let array = ops (option_count (selected))
+  let array = ops (option_count (selected) + 1) -- +1 for the MHD_OPTION_END
   op_array <- alloc array
-  pure $ runStateT (fill_array op_array array selected options) 0
+  runStateT (fill_array op_array array selected options) 0
   daemon <- foreign FFI_C "C_start_daemon_with_options" (Bits32 -> Bits16 -> Ptr -> Ptr -> Ptr -> Ptr -> Bits64 -> Bits32 -> Bits32 -> Bits32 ->
       Bits32 -> Bits64 -> Bits32 -> Ptr -> IO Ptr) flags port apc apc_cls handler arg (connection_memory_limit options) (connection_limit options) (connection_timeout options)  (per_ip_connection_limit options) (thread_pool_size options) (thread_stack_size options) (tcp_fastopen_queue_size options) op_array
   free op_array

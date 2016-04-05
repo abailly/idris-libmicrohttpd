@@ -89,7 +89,6 @@ GET_type = 0
 ||| Termination notification handler
 request_completed : Request_completed_handler
 request_completed cls conn con_cls toe = unsafePerformIO $ do
-  putStrLn "In request_completed"
   conn_info <- peek PTR con_cls
   if conn_info == null then
     pure ()
