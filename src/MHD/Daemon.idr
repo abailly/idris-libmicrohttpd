@@ -195,6 +195,10 @@ MHD_OPTION_NOTIFY_COMPLETED = 4
 MHD_OPTION_SOCK_ADDR : Bits32
 MHD_OPTION_SOCK_ADDR = 6
 
+||| Start daemon option for uri logging callback
+MHD_OPTION_URI_LOG_CALLBACK : Bits32
+MHD_OPTION_URI_LOG_CALLBACK = 7
+
 ||| Start daemon option for end of options list
 MHD_OPTION_END : Bits32
 MHD_OPTION_END = 0
@@ -240,6 +244,27 @@ fill_socket_address array_ptr array options todo = do
     lift $ poke PTR (fld_2 (fld array_ptr)) null
   else
     pure ()
+
+||| Fill @array pointed to by @array_ptr with a uri logging callback address
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_uri_log_callback : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_uri_log_callback array_ptr array options todo = do
+  if todo then do
+    let (callback, arg) = uri_log_callback options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_URI_LOG_CALLBACK
+    lift $ poke PTR (fld_1 (fld array_ptr)) callback
+    lift $ poke PTR (fld_2 (fld array_ptr)) arg
+  else
+    pure ()
  
 ||| Fill @array with those items of @ops that are True
 |||
@@ -251,6 +276,7 @@ fill_array : (array_ptr : CPtr) -> (array : Composite) -> (opts : Vect 16 Bool) 
 fill_array array_ptr array opts options = do
   fill_notify_completed array_ptr array options (index 0 opts)
   fill_socket_address array_ptr array options (index 1 opts)
+  fill_uri_log_callback array_ptr array options (index 2 opts)
   let fld = array # !get
   let fld_0 = option_struct # 0
   let fld_1 = option_struct # 1
