@@ -191,6 +191,10 @@ selected_options opts = [(fst (notify_completed opts)) /= null,
 MHD_OPTION_NOTIFY_COMPLETED : Bits32
 MHD_OPTION_NOTIFY_COMPLETED = 4
 
+||| Start daemon option for bound socket address
+MHD_OPTION_SOCK_ADDR : Bits32
+MHD_OPTION_SOCK_ADDR = 6
+
 ||| Start daemon option for end of options list
 MHD_OPTION_END : Bits32
 MHD_OPTION_END = 0
@@ -200,19 +204,43 @@ MHD_OPTION_END = 0
 ||| @array_ptr - same as @array
 ||| @array     - ARRAY of size = selected options in @options
 ||| @options   - Options to be passed to daemon
-fill_notify_completed : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> StateT Nat IO ()
-fill_notify_completed array_ptr array options = do
-  let (callback, arg) = notify_completed options
-  let fld = array # !get
-  modify (+ (the Nat 1))
-  let fld_0 = option_struct # 0
-  let fld_1 = option_struct # 1
-  let fld_2 = option_struct # 2
-  lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_NOTIFY_COMPLETED
-  lift $ poke PTR (fld_1 (fld array_ptr)) callback
-  lift $ poke PTR (fld_2 (fld array_ptr)) arg
-  pure ()
+||| @todo      - Do we need to do anything?
+fill_notify_completed : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_notify_completed array_ptr array options todo = do
+  if todo then do
+    let (callback, arg) = notify_completed options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_NOTIFY_COMPLETED
+    lift $ poke PTR (fld_1 (fld array_ptr)) callback
+    lift $ poke PTR (fld_2 (fld array_ptr)) arg
+  else
+    pure ()
 
+||| Fill @array pointed to by @array_ptr with a socket address 
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_socket_address : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_socket_address array_ptr array options todo = do
+  if todo then do
+    let addr = socket_address options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_SOCK_ADDR
+    lift $ poke PTR (fld_1 (fld array_ptr)) addr
+    lift $ poke PTR (fld_2 (fld array_ptr)) null
+  else
+    pure ()
+ 
 ||| Fill @array with those items of @ops that are True
 |||
 ||| @array_ptr - same as @array
@@ -221,17 +249,16 @@ fill_notify_completed array_ptr array options = do
 ||| @options   - Options to be passed to daemon
 fill_array : (array_ptr : CPtr) -> (array : Composite) -> (opts : Vect 16 Bool) -> (options : Start_options) -> StateT Nat IO ()
 fill_array array_ptr array opts options = do
-  if (index 0 opts) then do
-    fill_notify_completed array_ptr array options
-    let fld = array # !get
-    let fld_0 = option_struct # 0
-    let fld_1 = option_struct # 1
-    let fld_2 = option_struct # 2
-    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_END
-    lift $ poke I64 (fld_1 (fld array_ptr)) 0 
-    lift $ poke PTR (fld_2 (fld array_ptr)) null
-  else do
-    pure ()
+  fill_notify_completed array_ptr array options (index 0 opts)
+  fill_socket_address array_ptr array options (index 1 opts)
+  let fld = array # !get
+  let fld_0 = option_struct # 0
+  let fld_1 = option_struct # 1
+  let fld_2 = option_struct # 2
+  lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_END
+  lift $ poke I64 (fld_1 (fld array_ptr)) 0 
+  lift $ poke PTR (fld_2 (fld array_ptr)) null
+
   
 ||| Number of additional options in @opts that need to be passed to ops
 |||
