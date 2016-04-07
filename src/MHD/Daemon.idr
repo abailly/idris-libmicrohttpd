@@ -7,6 +7,9 @@ import Control.Monad.State
 
 %include C "lmh.h"
 
+string_to_c : String -> IO Ptr
+string_to_c str = foreign FFI_C "string_to_c" (String -> IO Ptr) str
+
 ||| Allow connection
 export MHD_YES : Int
 MHD_YES = 1
@@ -199,6 +202,58 @@ MHD_OPTION_SOCK_ADDR = 6
 MHD_OPTION_URI_LOG_CALLBACK : Bits32
 MHD_OPTION_URI_LOG_CALLBACK = 7
 
+||| Start daemon option for https private key
+MHD_OPTION_HTTPS_MEM_KEY : Bits32
+MHD_OPTION_HTTPS_MEM_KEY = 8
+
+||| Start daemon option for https certificate
+MHD_OPTION_HTTPS_MEM_CERT : Bits32
+MHD_OPTION_HTTPS_MEM_CERT = 9
+
+||| Start daemon option for server credentials type
+MHD_OPTION_HTTPS_CRED_TYPE : Bits32
+MHD_OPTION_HTTPS_CRED_TYPE = 10
+
+||| Start daemon option for cipher algorithm
+MHD_OPTION_HTTPS_PRIORITIES : Bits32
+MHD_OPTION_HTTPS_PRIORITIES = 11
+
+||| Start daemon option for listen socket
+MHD_OPTION_LISTEN_SOCKET : Bits32
+MHD_OPTION_LISTEN_SOCKET = 12
+
+||| Start daemon option for error logger
+MHD_OPTION_EXTERNAL_LOGGER : Bits32
+MHD_OPTION_EXTERNAL_LOGGER = 13
+
+||| Start daemon option for unescape callback routine
+MHD_OPTION_UNESCAPE_CALLBACK : Bits32
+MHD_OPTION_UNESCAPE_CALLBACK = 16
+
+||| Start daemon option for unescape callback routine
+MHD_OPTION_DIGEST_AUTH_RANDOM : Bits32
+MHD_OPTION_DIGEST_AUTH_RANDOM = 17
+
+||| Start daemon option for https client auth certificate
+MHD_OPTION_HTTPS_MEM_TRUST : Bits32
+MHD_OPTION_HTTPS_MEM_TRUST = 20
+
+||| Start daemon option for connection memory increment
+MHD_OPTION_CONNECTION_MEMORY_INCREMENT : Bits32
+MHD_OPTION_CONNECTION_MEMORY_INCREMENT = 21
+
+||| Start daemon option for X.509 certificate
+MHD_OPTION_HTTPS_CERT_CALLBACK : Bits32
+MHD_OPTION_HTTPS_CERT_CALLBACK = 22
+
+||| Start daemon option for https Diffe-Hellman parameters
+MHD_OPTION_HTTPS_MEM_DHPARAMS : Bits32
+MHD_OPTION_HTTPS_MEM_DHPARAMS = 24
+
+||| Start daemon option for reusing address:port socket
+MHD_OPTION_LISTENING_ADDRESS_REUSE : Bits32
+MHD_OPTION_LISTENING_ADDRESS_REUSE = 25
+
 ||| Start daemon option for end of options list
 MHD_OPTION_END : Bits32
 MHD_OPTION_END = 0
@@ -265,7 +320,289 @@ fill_uri_log_callback array_ptr array options todo = do
     lift $ poke PTR (fld_2 (fld array_ptr)) arg
   else
     pure ()
- 
+
+||| Fill @array pointed to by @array_ptr with https private key
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_https_mem_key : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_https_mem_key array_ptr array options todo = do
+  if todo then do
+    let key =  https_mem_key options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_HTTPS_MEM_KEY
+    k <- lift $ string_to_c key
+    lift $ poke PTR (fld_1 (fld array_ptr)) k
+    lift $ poke PTR (fld_2 (fld array_ptr)) null
+  else
+    pure ()
+
+||| Fill @array pointed to by @array_ptr with https certificate
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_https_mem_cert : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_https_mem_cert array_ptr array options todo = do
+  if todo then do
+    let cert =  https_mem_cert options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_HTTPS_MEM_CERT
+    c <- lift $ string_to_c cert
+    lift $ poke PTR (fld_1 (fld array_ptr)) c
+    lift $ poke PTR (fld_2 (fld array_ptr)) null
+  else
+    pure ()
+
+||| Fill @array pointed to by @array_ptr with https credentials type
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_https_cred_type : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_https_cred_type array_ptr array options todo = do
+  if todo then do
+    let cred =  https_cred_type options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_HTTPS_CRED_TYPE
+    lift $ poke PTR (fld_1 (fld array_ptr)) cred
+    lift $ poke PTR (fld_2 (fld array_ptr)) null
+  else
+    pure ()
+
+||| Fill @array pointed to by @array_ptr with https priorities
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_https_priorities : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_https_priorities array_ptr array options todo = do
+  if todo then do
+    let priorities =  https_priorities options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_HTTPS_PRIORITIES
+    p <- lift $ string_to_c priorities
+    lift $ poke PTR (fld_1 (fld array_ptr)) p
+    lift $ poke PTR (fld_2 (fld array_ptr)) null
+  else
+    pure ()
+
+||| Fill @array pointed to by @array_ptr with listen socket
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_listen_socket : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_listen_socket array_ptr array options todo = do
+  if todo then do
+    let sock =  listen_socket options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_LISTEN_SOCKET
+    lift $ poke I64 (fld_1 (fld array_ptr)) (prim__zextInt_B64 sock)
+    lift $ poke PTR (fld_2 (fld array_ptr)) null
+  else
+    pure ()
+
+||| Fill @array pointed to by @array_ptr with an error message logger
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_external_logger : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_external_logger array_ptr array options todo = do
+  if todo then do
+    let (callback, arg) = external_logger options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_EXTERNAL_LOGGER
+    lift $ poke PTR (fld_1 (fld array_ptr)) callback
+    lift $ poke PTR (fld_2 (fld array_ptr)) arg
+  else
+    pure ()
+
+||| Fill @array pointed to by @array_ptr with a URI unecape routine
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_unescape_callback : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_unescape_callback array_ptr array options todo = do
+  if todo then do
+    let (callback, arg) = external_logger options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_UNESCAPE_CALLBACK
+    lift $ poke PTR (fld_1 (fld array_ptr)) callback
+    lift $ poke PTR (fld_2 (fld array_ptr)) arg
+  else
+    pure ()
+       
+
+||| Fill @array pointed to by @array_ptr with random values for digest auth module
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_digest_auth_random : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_digest_auth_random array_ptr array options todo = do
+  if todo then do
+    let random =  digest_auth_random options
+    let len = length random
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_DIGEST_AUTH_RANDOM
+    r <- lift $ string_to_c random
+    lift $ poke I64 (fld_1 (fld array_ptr)) (prim__zextInt_B64 $ toIntNat len)
+    lift $ poke PTR (fld_2 (fld array_ptr)) r
+  else
+    pure ()
+
+||| Fill @array pointed to by @array_ptr with https certificate for client auth
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_https_mem_trust : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_https_mem_trust array_ptr array options todo = do
+  if todo then do
+    let cert =  https_mem_cert options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_HTTPS_MEM_TRUST
+    c <- lift $ string_to_c cert
+    lift $ poke PTR (fld_1 (fld array_ptr)) c
+    lift $ poke PTR (fld_2 (fld array_ptr)) null
+  else
+    pure ()
+
+||| Fill @array pointed to by @array_ptr with connection memory increment
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_connection_memory_increment : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_connection_memory_increment array_ptr array options todo = do
+  if todo then do
+    let inc =  connection_memory_increment options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_CONNECTION_MEMORY_INCREMENT
+    lift $ poke I64 (fld_1 (fld array_ptr)) inc
+    lift $ poke PTR (fld_2 (fld array_ptr)) null
+  else
+    pure ()
+
+||| Fill @array pointed to by @array_ptr with https X.509 certificate
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_https_cert_callback : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_https_cert_callback array_ptr array options todo = do
+  if todo then do
+    let cert =  https_cert_callback options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_HTTPS_CERT_CALLBACK
+    lift $ poke PTR (fld_1 (fld array_ptr)) cert
+    lift $ poke PTR (fld_2 (fld array_ptr)) null
+  else
+    pure ()
+
+||| Fill @array pointed to by @array_ptr with https Diffie-Hellman parameters
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+||| @todo      - Do we need to do anything?
+fill_https_mem_dhparams : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> (todo : Bool) -> StateT Nat IO ()
+fill_https_mem_dhparams array_ptr array options todo = do
+  if todo then do
+    let dhparams =  https_priorities options
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_HTTPS_MEM_DHPARAMS
+    p <- lift $ string_to_c dhparams
+    lift $ poke PTR (fld_1 (fld array_ptr)) p
+    lift $ poke PTR (fld_2 (fld array_ptr)) null
+  else
+    pure ()
+
+||| Fill @array pointed to by @array_ptr with allow reusing address:port socket
+|||
+||| @array_ptr - same as @array
+||| @array     - ARRAY of size = selected options in @options
+||| @options   - Options to be passed to daemon
+fill_listening_address_reuse : (array_ptr : CPtr) -> (array : Composite) -> (options : Start_options) -> StateT Nat IO ()
+fill_listening_address_reuse array_ptr array options = do
+  let todo = case listening_address_reuse options of
+    Nothing => False
+    Just x => x
+  if todo then do
+    let fld = array # !get
+    modify (+ (the Nat 1))
+    let fld_0 = option_struct # 0
+    let fld_1 = option_struct # 1
+    let fld_2 = option_struct # 2
+    lift $ poke I32 (fld_0 (fld array_ptr)) MHD_OPTION_LISTENING_ADDRESS_REUSE
+    lift $ poke I64 (fld_1 (fld array_ptr)) 1
+    lift $ poke PTR (fld_2 (fld array_ptr)) null
+  else
+    pure ()
+                           
 ||| Fill @array with those items of @ops that are True
 |||
 ||| @array_ptr - same as @array
@@ -277,6 +614,19 @@ fill_array array_ptr array opts options = do
   fill_notify_completed array_ptr array options (index 0 opts)
   fill_socket_address array_ptr array options (index 1 opts)
   fill_uri_log_callback array_ptr array options (index 2 opts)
+  fill_https_mem_key array_ptr array options (index 3 opts)
+  fill_https_mem_cert array_ptr array options (index 4 opts)
+  fill_https_cred_type array_ptr array options (index 5 opts)
+  fill_https_priorities array_ptr array options (index 6 opts)  
+  fill_listen_socket array_ptr array options (index 7 opts)  
+  fill_external_logger array_ptr array options (index 8 opts)  
+  fill_unescape_callback array_ptr array options (index 9 opts)  
+  fill_digest_auth_random array_ptr array options (index 10 opts)  
+  fill_https_mem_trust array_ptr array options (index 11 opts)  
+  fill_connection_memory_increment array_ptr array options (index 12 opts)  
+  fill_https_cert_callback array_ptr array options (index 13 opts)  
+  fill_https_mem_dhparams array_ptr array options (index 14 opts)  
+  fill_listening_address_reuse array_ptr array options
   let fld = array # !get
   let fld_0 = option_struct # 0
   let fld_1 = option_struct # 1
@@ -285,7 +635,6 @@ fill_array array_ptr array opts options = do
   lift $ poke I64 (fld_1 (fld array_ptr)) 0 
   lift $ poke PTR (fld_2 (fld array_ptr)) null
 
-  
 ||| Number of additional options in @opts that need to be passed to ops
 |||
 ||| @opts - which options have been selected
