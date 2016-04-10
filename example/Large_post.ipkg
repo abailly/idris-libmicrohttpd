@@ -1,0 +1,11 @@
+package Large_post
+
+modules = Main
+
+executable = large_post
+
+main = Large_post
+
+pkgs = MHD, contrib
+
+

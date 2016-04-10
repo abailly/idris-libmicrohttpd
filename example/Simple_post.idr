@@ -26,7 +26,7 @@ ask_page = "<html><body>What's your name, Sir?<br><form action=\"/namepost\" met
 greeting_page : String -> String
 greeting_page s = concat ["<html><body><h1><center>Welcome, ", s, "!</center></h1></body></html>"]
 
-||| HTML test response for requests other than GET and correct POSTs
+||| HTML text response for requests other than GET and correct POSTs
 error_page : String
 error_page = "<html><body>This doesn't seem to be right.</body></html>"
 
