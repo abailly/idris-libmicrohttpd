@@ -1,0 +1,11 @@
+package Sessions
+
+modules = Main
+
+executable = sessions
+
+main = Sessions
+
+pkgs = MHD, contrib, containers, lightyear
+
+

@@ -2,5 +2,11 @@
 *.o
 *#
 *~
-example/simple_post
-example/large_post
+example/simple_post/simple_post
+example/large_post/large_post
+example/hello/hello_world
+example/basic_authentication/basic_authentication
+example/logging/logging
+example/response_headers/response_headers
+example/sessions/sessions
+

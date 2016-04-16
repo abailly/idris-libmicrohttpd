@@ -3,6 +3,9 @@ module Connection
 
 %include C "lmh.h"
 
+string_to_c : String -> IO Ptr
+string_to_c str = foreign FFI_C "string_to_c" (String -> IO Ptr) str
+
 -- Possible values for kind arguement to get_connection_values follow:
 ||| Response header
 export MHD_RESPONSE_HEADER_KIND : Int
@@ -37,3 +40,11 @@ MHD_FOOTER_KIND = 16
 export get_connection_values : (conn : Ptr) -> (kind : Int) -> (iterator : Ptr) -> (iterator_cls : Ptr) -> IO Int
 get_connection_values conn kind callback cls = foreign FFI_C "MHD_get_connection_values" (Ptr -> Int -> Ptr -> Ptr -> IO Int) conn kind callback cls
 
+||| Get a particular header value. If multiple values match the kind, return any one of them.
+|||
+||| @conn         - the connection on which to get the header values
+||| @kind         - Type of values to iterate over
+||| @key          - the header to look for
+export lookup_connection_value :  (conn : Ptr) -> (kind : Int) -> (key: String) -> IO String
+lookup_connection_value conn kind key = foreign FFI_C "MHD_lookup_connection_value" (Ptr -> Int -> String -> IO String) conn kind key
+ 

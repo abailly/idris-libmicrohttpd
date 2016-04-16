@@ -191,8 +191,6 @@ iterate_post cls kind key file_name content_type transfer_encoding post_data off
            fh <- peek PTR fp_fld
            let sz = fromIntegerNat $ prim__zextB64_BigInt size
            let sub = substr 0 sz post_data
-           -- TODO - on large files there seems to be a slight carry-over sometimes between segments. Try evens.debug on C file to see if it is a problem
-           -- with the wrapper or with libmictohttpd - UPDATE the C program works correctly.
            ei3 <- fPutStr (FHandle fh) sub
            case ei3 of
              Left _  => pure MHD_NO
