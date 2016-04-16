@@ -6,6 +6,6 @@ executable = sessions
 
 main = Sessions
 
-pkgs = MHD, contrib, containers, lightyear
+pkgs = MHD, contrib, containers
 
 

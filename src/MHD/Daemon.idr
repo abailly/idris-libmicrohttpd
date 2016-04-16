@@ -18,6 +18,10 @@ MHD_YES = 1
 export MHD_NO : Int
 MHD_NO = 0
 
+||| Run in debug mode. If this flag is used, the library should print error messages and warnings to stderr.
+export MHD_USE_DEBUG : Bits32
+MHD_USE_DEBUG = 1
+
 ||| Run using an internal thread (or thread pool) doing select().
 export MHD_USE_SELECT_INTERNALLY : Bits32
 MHD_USE_SELECT_INTERNALLY = 8
